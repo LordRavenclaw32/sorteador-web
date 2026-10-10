@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pt-PT">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,6 +11,7 @@
         h1 { margin-top: 0; color: var(--text); }
         
         input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
+        input[type="file"] { background: #f8f9fa; padding: 10px; }
         button { width: 100%; padding: 14px; margin: 8px 0; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; color: white; background: var(--primary); transition: 0.2s; }
         button:active { transform: scale(0.98); }
         .btn-success { background: var(--success); font-size: 1.2rem; }
@@ -19,8 +20,8 @@
         .hidden { display: none !important; }
         
         /* Admin Tabs */
-        .tabs { display: flex; gap: 10px; margin-bottom: 20px; }
-        .tab-btn { background: #ecf0f1; color: var(--text); padding: 10px; }
+        .tabs { display: flex; gap: 5px; margin-bottom: 20px; overflow-x: auto; }
+        .tab-btn { background: #ecf0f1; color: var(--text); padding: 10px; flex: 1; min-width: 100px; }
         .tab-btn.active { background: var(--primary); color: white; }
         .tab-content { text-align: left; background: #fafafa; padding: 15px; border-radius: 8px; border: 1px solid #eee; margin-bottom: 20px; min-height: 200px; max-height: 400px; overflow-y: auto; }
         
@@ -31,9 +32,9 @@
         /* Modal Vencedor */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: flex; align-items: center; justify-content: center; z-index: 9999; }
         .modal-card { background: white; padding: 30px; border-radius: 16px; text-align: center; width: 90%; max-width: 400px; animation: pop 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28); }
-        .modal-card h2 { color: var(--danger); font-size: 2.2rem; margin: 0 0 10px 0; }
-        .modal-card h3 { font-size: 1.8rem; margin: 0; }
-        .modal-card p { font-size: 1.2rem; color: #555; }
+        .modal-card h2 { color: var(--danger); font-size: 1.8rem; margin: 0 0 10px 0; }
+        .modal-card h3 { font-size: 1.5rem; margin: 0; color: var(--text); }
+        .modal-card p { font-size: 1.1rem; color: #555; margin-top: 5px; }
         .modal-img { max-width: 100%; max-height: 250px; border-radius: 8px; margin: 15px 0; object-fit: cover; box-shadow: 0 4px 10px rgba(0,0,0,0.15); }
         
         @keyframes pop { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
@@ -46,27 +47,26 @@
     <div class="container">
         <h1>Sorteador Web</h1>
 
-        <!-- Visão Participante -->
         <div id="view-participant">
             <input type="text" id="part-name" placeholder="O seu nome completo" autocomplete="off">
             <button onclick="window.join()">Ingressar no Sorteio</button>
         </div>
         
         <div id="view-waiting" class="hidden" style="background: #e8f8f5; padding: 20px; border-radius: 8px; color: #117a65;">
-            <h3>✅ Registado com sucesso!</h3>
-            <p>Aguarde o sorteio neste ecrã.</p>
+            <h3>✅ Registrado com sucesso!</h3>
+            <p>Aguarde o sorteio nesta tela.</p>
         </div>
 
-        <!-- Visão Admin -->
         <div id="view-admin" class="hidden">
             <div class="tabs">
-                <button id="tab-btn-brindes" class="tab-btn active" onclick="window.switchTab('brindes')">🎁 Brindes (<span id="c-brindes">0</span>)</button>
-                <button id="tab-btn-parts" class="tab-btn" onclick="window.switchTab('parts')">👥 Participantes (<span id="c-parts">0</span>)</button>
+                <button id="tab-btn-brindes" class="tab-btn active" onclick="window.switchTab('brindes')">🎁 Brindes</button>
+                <button id="tab-btn-parts" class="tab-btn" onclick="window.switchTab('parts')">👥 Inscritos (<span id="c-parts">0</span>)</button>
+                <button id="tab-btn-wins" class="tab-btn" onclick="window.switchTab('wins')">🏆 Ganhadores</button>
             </div>
 
             <div id="tab-brindes" class="tab-content">
                 <input type="text" id="prize-name" placeholder="Nome do Brinde">
-                <input type="url" id="prize-img" placeholder="URL da Imagem (Opcional)">
+                <input type="file" id="prize-file" accept="image/*" title="Anexar Imagem">
                 <button onclick="window.addPrize()" style="margin-bottom: 20px;">+ Adicionar Brinde</button>
                 <ul id="list-brindes"></ul>
             </div>
@@ -75,17 +75,20 @@
                 <ul id="list-parts"></ul>
             </div>
 
+            <div id="tab-wins" class="tab-content hidden">
+                <ul id="list-wins"></ul>
+            </div>
+
             <button class="btn-success" onclick="window.draw()">🎲 SORTEAR AGORA</button>
             <button class="btn-danger" onclick="window.reset()" style="margin-top: 15px; font-size: 0.9em; padding: 10px;">Limpar Dados (Reset)</button>
         </div>
     </div>
 
-    <!-- Modal Vencedor -->
     <div id="modal-winner" class="modal-overlay hidden">
         <div class="modal-card">
-            <h2>🏆 VENCEDOR!</h2>
+            <h2 id="w-title"></h2>
             <h3 id="w-name"></h3>
-            <p>Ganhou: <b id="w-prize"></b></p>
+            <p id="w-desc"></p>
             <img id="w-img" src="" alt="Brinde" class="modal-img hidden">
             <button onclick="window.closeModal()" style="background: #333; margin-top: 20px;">Fechar</button>
         </div>
@@ -111,11 +114,11 @@
 
         const rParts = ref(db, 'parts');
         const rPrizes = ref(db, 'prizes');
+        const rWins = ref(db, 'winners');
         const rDraw = ref(db, 'draw');
 
         const isAdmin = new URLSearchParams(window.location.search).has('admin');
 
-        // Configuração Inicial de Visualização
         if (isAdmin) {
             document.getElementById('view-participant').classList.add('hidden');
             document.getElementById('view-admin').classList.remove('hidden');
@@ -124,16 +127,37 @@
             document.getElementById('view-waiting').classList.remove('hidden');
         }
 
-        // --- FUNÇÕES GLOBAIS ---
         window.switchTab = function(tab) {
-            document.getElementById('tab-brindes').classList.add('hidden');
-            document.getElementById('tab-parts').classList.add('hidden');
-            document.getElementById('tab-btn-brindes').classList.remove('active');
-            document.getElementById('tab-btn-parts').classList.remove('active');
-            
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
             document.getElementById(`tab-${tab}`).classList.remove('hidden');
             document.getElementById(`tab-btn-${tab}`).classList.add('active');
         };
+
+        // Função para comprimir a imagem e converter para Base64 antes de salvar
+        function compressImage(file, callback) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    const maxW = 400; const maxH = 400;
+                    let w = img.width; let h = img.height;
+                    
+                    if(w > maxW || h > maxH) {
+                        if(w > h) { h *= maxW / w; w = maxW; }
+                        else { w *= maxH / h; h = maxH; }
+                    }
+                    
+                    canvas.width = w; canvas.height = h;
+                    ctx.drawImage(img, 0, 0, w, h);
+                    callback(canvas.toDataURL('image/jpeg', 0.7)); // Qualidade 70%
+                }
+                img.src = e.target.result;
+            }
+            reader.readAsDataURL(file);
+        }
 
         window.join = async function() {
             const name = document.getElementById('part-name').value.trim();
@@ -147,12 +171,20 @@
 
         window.addPrize = async function() {
             const name = document.getElementById('prize-name').value.trim();
-            const img = document.getElementById('prize-img').value.trim();
+            const fileInput = document.getElementById('prize-file');
             if (!name) return alert("O brinde precisa de um nome.");
             
-            await push(rPrizes, { name, img });
-            document.getElementById('prize-name').value = '';
-            document.getElementById('prize-img').value = '';
+            const saveToDB = async (base64Img) => {
+                await push(rPrizes, { name, img: base64Img });
+                document.getElementById('prize-name').value = '';
+                fileInput.value = '';
+            };
+
+            if (fileInput.files.length > 0) {
+                compressImage(fileInput.files[0], saveToDB);
+            } else {
+                saveToDB('');
+            }
         };
 
         window.draw = async function() {
@@ -168,14 +200,15 @@
             if (!prizes.length) return alert("Não há brindes.");
             if (!parts.length) return alert("Não há participantes.");
 
+            // Mecânica rigorosamente aleatória baseada no tamanho do array
             const prize = prizes[0];
-            const winner = parts[Math.floor(Math.random() * parts.length)];
+            const randomIndex = Math.floor(Math.random() * parts.length);
+            const winner = parts[randomIndex];
 
-            // Remove vencedor e brinde sorteado
+            await push(rWins, { wName: winner.name, pName: prize.name, img: prize.img || '' });
             await remove(ref(db, `prizes/${prize.id}`));
             await remove(ref(db, `parts/${winner.id}`));
 
-            // Dispara modal para todos
             await set(rDraw, {
                 wName: winner.name,
                 pName: prize.name,
@@ -185,9 +218,10 @@
         };
 
         window.reset = async function() {
-            if(confirm("Apagar TUDO?")) {
+            if(confirm("Apagar TODOS os dados?")) {
                 await remove(rParts);
                 await remove(rPrizes);
+                await remove(rWins);
                 await remove(rDraw);
                 localStorage.removeItem('sort_name');
                 if(!isAdmin) location.reload();
@@ -198,24 +232,19 @@
             document.getElementById('modal-winner').classList.add('hidden');
         };
 
-        // --- LISTENERS (Atualização em Tempo Real) ---
+        // --- ATUALIZAÇÕES EM TEMPO REAL ---
+        
         onValue(rParts, snap => {
             const count = snap.exists() ? snap.size : 0;
             document.getElementById('c-parts').innerText = count;
-            
             if (isAdmin) {
                 const list = document.getElementById('list-parts');
                 list.innerHTML = '';
-                if (snap.exists()) {
-                    snap.forEach(c => { list.innerHTML += `<li>${c.val().name}</li>`; });
-                }
+                if (snap.exists()) snap.forEach(c => { list.innerHTML += `<li>${c.val().name}</li>`; });
             }
         });
 
         onValue(rPrizes, snap => {
-            const count = snap.exists() ? snap.size : 0;
-            document.getElementById('c-brindes').innerText = count;
-            
             if (isAdmin) {
                 const list = document.getElementById('list-brindes');
                 list.innerHTML = '';
@@ -229,12 +258,35 @@
             }
         });
 
+        onValue(rWins, snap => {
+            if (isAdmin) {
+                const list = document.getElementById('list-wins');
+                list.innerHTML = '';
+                if (snap.exists()) {
+                    snap.forEach(c => {
+                        const w = c.val();
+                        const imgHtml = w.img ? `<img src="${w.img}" class="item-img">` : '';
+                        list.innerHTML += `<li><div><strong>${w.wName}</strong><br><small>${w.pName}</small></div> ${imgHtml}</li>`;
+                    });
+                }
+            }
+        });
+
         onValue(rDraw, snap => {
             if (snap.exists()) {
                 const d = snap.val();
-                if (Date.now() - d.time < 15000) { // Mostra apenas se o sorteio ocorreu há menos de 15s
-                    document.getElementById('w-name').innerText = d.wName;
-                    document.getElementById('w-prize').innerText = d.pName;
+                if (Date.now() - d.time < 15000) { 
+                    const myName = localStorage.getItem('sort_name');
+                    
+                    if (myName && myName === d.wName) {
+                        document.getElementById('w-title').innerText = "🎉 PARABÉNS, VOCÊ GANHOU! 🎉";
+                        document.getElementById('w-name').innerText = "";
+                        document.getElementById('w-desc').innerHTML = `O brinde <b>${d.pName}</b> é seu!`;
+                    } else {
+                        document.getElementById('w-title').innerText = "🏆 VENCEDOR";
+                        document.getElementById('w-name').innerText = d.wName;
+                        document.getElementById('w-desc').innerHTML = `Ganhou: <b>${d.pName}</b>`;
+                    }
                     
                     const imgEl = document.getElementById('w-img');
                     if(d.img) {
