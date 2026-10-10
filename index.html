@@ -4,6 +4,23 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sorteador Web</title>
+    <meta name="theme-color" content="#3498db">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Sorteador">
+    <link rel="manifest" id="pwa-manifest" href="manifest.webmanifest">
+    <script>
+        (function(){
+            var adm = /[?&]admin(=|&|$)/.test(location.search);
+            var m = document.getElementById('pwa-manifest');
+            if (adm) { m.href = 'manifest-admin.webmanifest'; document.title = 'Sorteador ADM'; }
+            var ic = document.createElement('link'); ic.rel = 'apple-touch-icon';
+            ic.href = adm ? 'icon-admin-192.png' : 'icon-192.png'; document.head.appendChild(ic);
+            var fv = document.createElement('link'); fv.rel = 'icon'; fv.type = 'image/png';
+            fv.href = adm ? 'icon-admin-192.png' : 'icon-192.png'; document.head.appendChild(fv);
+        })();
+    </script>
     <style>
         :root { --bg: #f4f6f9; --card: #ffffff; --primary: #3498db; --success: #2ecc71; --danger: #e74c3c; --text: #2c3e50; }
         body { font-family: -apple-system, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 0; display: flex; flex-direction: column; min-height: 100vh; }
@@ -116,6 +133,8 @@
         const rPrizes = ref(db, 'prizes');
         const rWins = ref(db, 'winners');
         const rDraw = ref(db, 'draw');
+
+        const esc = t => String(t ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
         const isAdmin = new URLSearchParams(window.location.search).has('admin');
 
@@ -240,7 +259,7 @@
             if (isAdmin) {
                 const list = document.getElementById('list-parts');
                 list.innerHTML = '';
-                if (snap.exists()) snap.forEach(c => { list.innerHTML += `<li>${c.val().name}</li>`; });
+                if (snap.exists()) snap.forEach(c => { list.innerHTML += `<li>${esc(c.val().name)}</li>`; });
             }
         });
 
@@ -252,7 +271,7 @@
                     snap.forEach(c => {
                         const p = c.val();
                         const imgHtml = p.img ? `<img src="${p.img}" class="item-img">` : '';
-                        list.innerHTML += `<li><span>${p.name}</span> ${imgHtml}</li>`;
+                        list.innerHTML += `<li><span>${esc(p.name)}</span> ${imgHtml}</li>`;
                     });
                 }
             }
@@ -266,7 +285,7 @@
                     snap.forEach(c => {
                         const w = c.val();
                         const imgHtml = w.img ? `<img src="${w.img}" class="item-img">` : '';
-                        list.innerHTML += `<li><div><strong>${w.wName}</strong><br><small>${w.pName}</small></div> ${imgHtml}</li>`;
+                        list.innerHTML += `<li><div><strong>${esc(w.wName)}</strong><br><small>${esc(w.pName)}</small></div> ${imgHtml}</li>`;
                     });
                 }
             }
@@ -281,11 +300,11 @@
                     if (myName && myName === d.wName) {
                         document.getElementById('w-title').innerText = "🎉 PARABÉNS, VOCÊ GANHOU! 🎉";
                         document.getElementById('w-name').innerText = "";
-                        document.getElementById('w-desc').innerHTML = `O brinde <b>${d.pName}</b> é seu!`;
+                        document.getElementById('w-desc').innerHTML = `O brinde <b>${esc(d.pName)}</b> é seu!`;
                     } else {
                         document.getElementById('w-title').innerText = "🏆 VENCEDOR";
                         document.getElementById('w-name').innerText = d.wName;
-                        document.getElementById('w-desc').innerHTML = `Ganhou: <b>${d.pName}</b>`;
+                        document.getElementById('w-desc').innerHTML = `Ganhou: <b>${esc(d.pName)}</b>`;
                     }
                     
                     const imgEl = document.getElementById('w-img');
@@ -301,6 +320,11 @@
                 }
             }
         });
+    </script>
+    <script>
+        if ('serviceWorker' in navigator && /^https?:/.test(location.protocol)) {
+            window.addEventListener('load', function(){ navigator.serviceWorker.register('sw.js').catch(function(){}); });
+        }
     </script>
 </body>
 </html>
