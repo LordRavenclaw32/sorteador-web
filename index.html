@@ -3,36 +3,66 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sorteio de Brindes</title>
+    <title>Sorteio Web</title>
+    
+    <!-- Configuração PWA Dinâmica para Admin -->
+    <meta name="theme-color" content="#2c3e50">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="manifest" id="pwa-manifest">
+    <script>
+        const manifest = {
+            "name": "Sorteador Web - Admin",
+            "short_name": "Sorteador Admin",
+            "start_url": window.location.pathname + "?admin=1",
+            "display": "standalone",
+            "background_color": "#f8f9fa",
+            "theme_color": "#2c3e50",
+            "icons": [{
+                "src": "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='192' height='192'><rect width='192' height='192' fill='%232c3e50'/><text x='50%' y='50%' font-size='80' text-anchor='middle' dy='.3em' fill='white'>🎁</text></svg>",
+                "sizes": "192x192",
+                "type": "image/svg+xml"
+            }]
+        };
+        const blob = new Blob([JSON.stringify(manifest)], {type: 'application/json'});
+        document.getElementById('pwa-manifest').setAttribute('href', URL.createObjectURL(blob));
+    </script>
+
     <style>
         :root { --primary: #2c3e50; --btn: #3498db; --bg: #f8f9fa; }
         body { font-family: -apple-system, sans-serif; background: var(--bg); text-align: center; margin: 0; padding: 15px; color: #333; }
-        .container { max-width: 500px; margin: auto; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .container { max-width: 600px; margin: auto; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
         h1 { color: var(--primary); font-size: 1.5rem; }
-        input, button { width: 100%; padding: 14px; margin: 8px 0; border-radius: 8px; box-sizing: border-box; font-size: 16px; border: 1px solid #ccc; }
-        button { background: var(--btn); color: white; border: none; font-weight: bold; cursor: pointer; }
+        input, button { width: 100%; padding: 12px; margin: 6px 0; border-radius: 6px; box-sizing: border-box; font-size: 15px; border: 1px solid #ccc; }
+        button { background: var(--btn); color: white; border: none; font-weight: bold; cursor: pointer; transition: 0.2s; }
         button:active { transform: scale(0.98); }
         .hidden { display: none !important; }
         
-        #host-panel { background: #e8f4f8; padding: 15px; border-radius: 8px; border: 2px dashed #90c2e7; margin-top: 15px; }
-        .draw-btn { background: #27ae60; font-size: 1.2rem; padding: 16px; }
+        #host-panel { background: #e8f4f8; padding: 15px; border-radius: 8px; border: 2px dashed #90c2e7; margin-top: 15px; text-align: left; }
+        .draw-btn { background: #27ae60; font-size: 1.2rem; padding: 15px; }
         
-        .winner-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; z-index: 1000; flex-direction: column; }
-        .winner-content { background: white; padding: 40px; border-radius: 15px; text-align: center; animation: popIn 0.5s ease-out; width: 80%; max-width: 350px;}
+        .winner-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: flex; align-items: center; justify-content: center; z-index: 1000; flex-direction: column; }
+        .winner-content { background: white; padding: 30px; border-radius: 15px; text-align: center; animation: popIn 0.5s ease-out; width: 90%; max-width: 400px;}
         .winner-content h2 { color: #e74c3c; font-size: 2rem; margin: 0 0 10px 0; }
+        #modal-prize-image { max-width: 100%; max-height: 200px; border-radius: 8px; margin: 15px 0; object-fit: cover; box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
         
         @keyframes popIn { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
         
-        ul { list-style: none; padding: 0; text-align: left; }
-        li { padding: 10px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center;}
+        ul { list-style: none; padding: 0; margin: 0; }
+        li { padding: 8px; border-bottom: 1px solid #ddd; font-size: 0.9em; display: flex; justify-content: space-between; align-items: center; }
         
         .stat { display: inline-block; padding: 5px 10px; background: #eee; border-radius: 12px; font-size: 0.9em; margin: 5px; }
+        
+        .admin-lists { display: flex; gap: 15px; margin-top: 15px; }
+        .admin-list-col { flex: 1; background: white; padding: 10px; border-radius: 6px; border: 1px solid #ccc; max-height: 200px; overflow-y: auto; }
+        .admin-list-col h4 { margin: 0 0 10px 0; font-size: 0.95em; color: #555; text-align: center; }
+        .prize-thumb { width: 30px; height: 30px; object-fit: cover; border-radius: 4px; margin-left: 10px; }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <h1>🎁 Sorteio da Palestra</h1>
+        <h1>🎁 Sorteio Web</h1>
         
         <div id="stats" style="margin-bottom: 15px;">
             <span class="stat">Brindes: <b id="count-prizes">0</b></span>
@@ -40,7 +70,7 @@
         </div>
 
         <div id="participant-panel">
-            <input type="text" id="participant-name" placeholder="O seu nome e apelido" autocomplete="off">
+            <input type="text" id="participant-name" placeholder="O seu nome completo" autocomplete="off">
             <button onclick="window.joinRaffle()">Ingressar no Sorteio</button>
         </div>
         
@@ -50,28 +80,41 @@
         </div>
 
         <div id="host-panel" class="hidden">
-            <h3 style="margin-top: 0;">Área do Palestrante</h3>
-            <input type="text" id="prize-name" placeholder="Nome do Brinde">
+            <h3 style="margin-top: 0; text-align: center;">Área do Palestrante</h3>
+            <input type="text" id="prize-name" placeholder="Nome do Brinde (Ex: Livro)">
+            <input type="url" id="prize-image" placeholder="URL da Imagem (Opcional - cole o link da web)">
             <button onclick="window.addPrize()">Cadastrar Brinde</button>
-            <br><br>
+            
+            <div class="admin-lists">
+                <div class="admin-list-col">
+                    <h4>Prêmios na Fila</h4>
+                    <ul id="admin-prizes"></ul>
+                </div>
+                <div class="admin-list-col">
+                    <h4>Participantes</h4>
+                    <ul id="admin-participants"></ul>
+                </div>
+            </div>
+
+            <br>
             <button class="draw-btn" onclick="window.drawWinner()">🎲 Sortear Agora</button>
-            <button onclick="window.resetData()" style="background: #e74c3c; margin-top: 20px; font-size: 0.9em;">Limpar Tudo (Reset)</button>
+            <button onclick="window.resetData()" style="background: #e74c3c; margin-top: 15px; font-size: 0.85em; padding: 10px;">Limpar Tudo (Reset)</button>
         </div>
 
-        <h3 style="margin-top: 30px; text-align: left;">Ganhadores</h3>
+        <h3 style="margin-top: 30px; text-align: left;">Ganhadores Histórico</h3>
         <ul id="winners-list"></ul>
     </div>
 
     <div id="winner-modal" class="winner-modal hidden">
         <div class="winner-content">
             <h2>🏆 VENCEDOR!</h2>
-            <h3 id="modal-winner-name" style="font-size: 1.5em; margin-bottom: 5px;"></h3>
-            <p style="color: #666; margin-top: 0;">Ganhou: <b id="modal-prize-name"></b></p>
+            <h3 id="modal-winner-name" style="font-size: 1.6em; margin-bottom: 5px;"></h3>
+            <p style="color: #666; margin-top: 0; font-size: 1.1em;">Ganhou: <b id="modal-prize-name"></b></p>
+            <img id="modal-prize-image" src="" alt="Imagem do Prêmio" class="hidden">
             <button onclick="window.closeModal()" style="margin-top: 20px; background: #333;">Fechar</button>
         </div>
     </div>
 
-    <!-- SDK Modular do Firebase v13 configurado -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-app.js";
         import { getDatabase, ref, push, set, onValue, remove, get } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-database.js";
@@ -82,8 +125,7 @@
             projectId: "sorteador-a931a",
             storageBucket: "sorteador-a931a.firebasestorage.app",
             messagingSenderId: "1049573723433",
-            appId: "1:1049573723433:web:815b84b1e957f5bb9e7b38",
-            measurementId: "G-QXLB7T6976"
+            appId: "1:1049573723433:web:815b84b1e957f5bb9e7b38"
         };
 
         const app = initializeApp(firebaseConfig);
@@ -105,7 +147,6 @@
             document.getElementById('joined-msg').classList.remove('hidden');
         }
 
-        // Funções anexadas ao window devido ao escopo de <script type="module">
         window.joinRaffle = async function() {
             const name = document.getElementById('participant-name').value.trim();
             if (!name) return alert("Digite o seu nome!");
@@ -118,9 +159,12 @@
 
         window.addPrize = async function() {
             const prize = document.getElementById('prize-name').value.trim();
+            const image = document.getElementById('prize-image').value.trim();
             if (!prize) return;
-            await push(refPrizes, { name: prize });
+            
+            await push(refPrizes, { name: prize, image: image });
             document.getElementById('prize-name').value = '';
+            document.getElementById('prize-image').value = '';
         };
 
         window.drawWinner = async function() {
@@ -128,14 +172,10 @@
             const snapPrizes = await get(refPrizes);
             
             const participants = [];
-            if (snapParts.exists()) {
-                snapParts.forEach(child => { participants.push({ id: child.key, name: child.val().name }); });
-            }
+            if (snapParts.exists()) snapParts.forEach(c => { participants.push({ id: c.key, name: c.val().name }); });
             
             const prizes = [];
-            if (snapPrizes.exists()) {
-                snapPrizes.forEach(child => { prizes.push({ id: child.key, name: child.val().name }); });
-            }
+            if (snapPrizes.exists()) snapPrizes.forEach(c => { prizes.push({ id: c.key, name: c.val().name, image: c.val().image || '' }); });
 
             if (prizes.length === 0) return alert("Não há brindes registados!");
             if (participants.length === 0) return alert("Não há participantes!");
@@ -151,6 +191,7 @@
             await set(refCurrentDraw, {
                 winner: winner.name,
                 prize: prize.name,
+                image: prize.image,
                 timestamp: Date.now()
             });
         };
@@ -166,11 +207,33 @@
         };
 
         onValue(refParticipants, snap => {
-            document.getElementById('count-participants').innerText = snap.exists() ? snap.size : 0;
+            const count = snap.exists() ? snap.size : 0;
+            document.getElementById('count-participants').innerText = count;
+            
+            if (isAdmin) {
+                const list = document.getElementById('admin-participants');
+                list.innerHTML = '';
+                if (snap.exists()) {
+                    snap.forEach(child => { list.innerHTML += `<li>${child.val().name}</li>`; });
+                }
+            }
         });
 
         onValue(refPrizes, snap => {
-            document.getElementById('count-prizes').innerText = snap.exists() ? snap.size : 0;
+            const count = snap.exists() ? snap.size : 0;
+            document.getElementById('count-prizes').innerText = count;
+            
+            if (isAdmin) {
+                const list = document.getElementById('admin-prizes');
+                list.innerHTML = '';
+                if (snap.exists()) {
+                    snap.forEach(child => { 
+                        const p = child.val();
+                        const imgTag = p.image ? `<img src="${p.image}" class="prize-thumb">` : '';
+                        list.innerHTML += `<li>${p.name} ${imgTag}</li>`; 
+                    });
+                }
+            }
         });
 
         onValue(refWinners, snap => {
@@ -187,19 +250,6 @@
         onValue(refCurrentDraw, snap => {
             if (snap.exists()) {
                 const draw = snap.val();
-                if (Date.now() - draw.timestamp < 10000) { 
+                if (Date.now() - draw.timestamp < 15000) { 
                     document.getElementById('modal-winner-name').innerText = draw.winner;
                     document.getElementById('modal-prize-name').innerText = draw.prize;
-                    document.getElementById('winner-modal').classList.remove('hidden');
-                    
-                    if(!isAdmin && navigator.vibrate) navigator.vibrate([200, 100, 200]);
-                }
-            }
-        });
-
-        window.closeModal = function() {
-            document.getElementById('winner-modal').classList.add('hidden');
-        };
-    </script>
-</body>
-</html>
