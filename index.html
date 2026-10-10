@@ -3,117 +3,95 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sorteio Web</title>
-    
-    <!-- Configuração PWA Dinâmica para Admin -->
-    <meta name="theme-color" content="#2c3e50">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link rel="manifest" id="pwa-manifest">
-    <script>
-        const manifest = {
-            "name": "Sorteador Web - Admin",
-            "short_name": "Sorteador Admin",
-            "start_url": window.location.pathname + "?admin=1",
-            "display": "standalone",
-            "background_color": "#f8f9fa",
-            "theme_color": "#2c3e50",
-            "icons": [{
-                "src": "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='192' height='192'><rect width='192' height='192' fill='%232c3e50'/><text x='50%' y='50%' font-size='80' text-anchor='middle' dy='.3em' fill='white'>🎁</text></svg>",
-                "sizes": "192x192",
-                "type": "image/svg+xml"
-            }]
-        };
-        const blob = new Blob([JSON.stringify(manifest)], {type: 'application/json'});
-        document.getElementById('pwa-manifest').setAttribute('href', URL.createObjectURL(blob));
-    </script>
-
+    <title>Sorteador Web</title>
     <style>
-        :root { --primary: #2c3e50; --btn: #3498db; --bg: #f8f9fa; }
-        body { font-family: -apple-system, sans-serif; background: var(--bg); text-align: center; margin: 0; padding: 15px; color: #333; }
-        .container { max-width: 600px; margin: auto; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        h1 { color: var(--primary); font-size: 1.5rem; }
-        input, button { width: 100%; padding: 12px; margin: 6px 0; border-radius: 6px; box-sizing: border-box; font-size: 15px; border: 1px solid #ccc; }
-        button { background: var(--btn); color: white; border: none; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        :root { --bg: #f4f6f9; --card: #ffffff; --primary: #3498db; --success: #2ecc71; --danger: #e74c3c; --text: #2c3e50; }
+        body { font-family: -apple-system, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 0; display: flex; flex-direction: column; min-height: 100vh; }
+        .container { flex: 1; max-width: 600px; margin: 20px auto; width: 90%; background: var(--card); padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); text-align: center; }
+        h1 { margin-top: 0; color: var(--text); }
+        
+        input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
+        button { width: 100%; padding: 14px; margin: 8px 0; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; color: white; background: var(--primary); transition: 0.2s; }
         button:active { transform: scale(0.98); }
+        .btn-success { background: var(--success); font-size: 1.2rem; }
+        .btn-danger { background: var(--danger); }
+        
         .hidden { display: none !important; }
         
-        #host-panel { background: #e8f4f8; padding: 15px; border-radius: 8px; border: 2px dashed #90c2e7; margin-top: 15px; text-align: left; }
-        .draw-btn { background: #27ae60; font-size: 1.2rem; padding: 15px; }
-        
-        .winner-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: flex; align-items: center; justify-content: center; z-index: 1000; flex-direction: column; }
-        .winner-content { background: white; padding: 30px; border-radius: 15px; text-align: center; animation: popIn 0.5s ease-out; width: 90%; max-width: 400px;}
-        .winner-content h2 { color: #e74c3c; font-size: 2rem; margin: 0 0 10px 0; }
-        #modal-prize-image { max-width: 100%; max-height: 200px; border-radius: 8px; margin: 15px 0; object-fit: cover; box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
-        
-        @keyframes popIn { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+        /* Admin Tabs */
+        .tabs { display: flex; gap: 10px; margin-bottom: 20px; }
+        .tab-btn { background: #ecf0f1; color: var(--text); padding: 10px; }
+        .tab-btn.active { background: var(--primary); color: white; }
+        .tab-content { text-align: left; background: #fafafa; padding: 15px; border-radius: 8px; border: 1px solid #eee; margin-bottom: 20px; min-height: 200px; max-height: 400px; overflow-y: auto; }
         
         ul { list-style: none; padding: 0; margin: 0; }
-        li { padding: 8px; border-bottom: 1px solid #ddd; font-size: 0.9em; display: flex; justify-content: space-between; align-items: center; }
+        li { padding: 10px; border-bottom: 1px solid #ddd; display: flex; align-items: center; justify-content: space-between; font-size: 0.95em; }
+        .item-img { width: 40px; height: 40px; border-radius: 6px; object-fit: cover; margin-left: 10px; }
         
-        .stat { display: inline-block; padding: 5px 10px; background: #eee; border-radius: 12px; font-size: 0.9em; margin: 5px; }
+        /* Modal Vencedor */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: flex; align-items: center; justify-content: center; z-index: 9999; }
+        .modal-card { background: white; padding: 30px; border-radius: 16px; text-align: center; width: 90%; max-width: 400px; animation: pop 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28); }
+        .modal-card h2 { color: var(--danger); font-size: 2.2rem; margin: 0 0 10px 0; }
+        .modal-card h3 { font-size: 1.8rem; margin: 0; }
+        .modal-card p { font-size: 1.2rem; color: #555; }
+        .modal-img { max-width: 100%; max-height: 250px; border-radius: 8px; margin: 15px 0; object-fit: cover; box-shadow: 0 4px 10px rgba(0,0,0,0.15); }
         
-        .admin-lists { display: flex; gap: 15px; margin-top: 15px; }
-        .admin-list-col { flex: 1; background: white; padding: 10px; border-radius: 6px; border: 1px solid #ccc; max-height: 200px; overflow-y: auto; }
-        .admin-list-col h4 { margin: 0 0 10px 0; font-size: 0.95em; color: #555; text-align: center; }
-        .prize-thumb { width: 30px; height: 30px; object-fit: cover; border-radius: 4px; margin-left: 10px; }
+        @keyframes pop { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+        
+        footer { text-align: center; padding: 15px; font-size: 0.85em; color: #7f8c8d; background: #e9ecef; font-weight: bold; }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <h1>🎁 Sorteio Web</h1>
-        
-        <div id="stats" style="margin-bottom: 15px;">
-            <span class="stat">Brindes: <b id="count-prizes">0</b></span>
-            <span class="stat">Participantes: <b id="count-participants">0</b></span>
-        </div>
+        <h1>Sorteador Web</h1>
 
-        <div id="participant-panel">
-            <input type="text" id="participant-name" placeholder="O seu nome completo" autocomplete="off">
-            <button onclick="window.joinRaffle()">Ingressar no Sorteio</button>
+        <!-- Visão Participante -->
+        <div id="view-participant">
+            <input type="text" id="part-name" placeholder="O seu nome completo" autocomplete="off">
+            <button onclick="window.join()">Ingressar no Sorteio</button>
         </div>
         
-        <div id="joined-msg" class="hidden" style="padding: 20px; background: #d4edda; color: #155724; border-radius: 8px;">
-            <h3>✅ Nome registado!</h3>
-            <p>Fique de olho neste ecrã durante o sorteio.</p>
+        <div id="view-waiting" class="hidden" style="background: #e8f8f5; padding: 20px; border-radius: 8px; color: #117a65;">
+            <h3>✅ Registado com sucesso!</h3>
+            <p>Aguarde o sorteio neste ecrã.</p>
         </div>
 
-        <div id="host-panel" class="hidden">
-            <h3 style="margin-top: 0; text-align: center;">Área do Palestrante</h3>
-            <input type="text" id="prize-name" placeholder="Nome do Brinde (Ex: Livro)">
-            <input type="url" id="prize-image" placeholder="URL da Imagem (Opcional - cole o link da web)">
-            <button onclick="window.addPrize()">Cadastrar Brinde</button>
-            
-            <div class="admin-lists">
-                <div class="admin-list-col">
-                    <h4>Prêmios na Fila</h4>
-                    <ul id="admin-prizes"></ul>
-                </div>
-                <div class="admin-list-col">
-                    <h4>Participantes</h4>
-                    <ul id="admin-participants"></ul>
-                </div>
+        <!-- Visão Admin -->
+        <div id="view-admin" class="hidden">
+            <div class="tabs">
+                <button id="tab-btn-brindes" class="tab-btn active" onclick="window.switchTab('brindes')">🎁 Brindes (<span id="c-brindes">0</span>)</button>
+                <button id="tab-btn-parts" class="tab-btn" onclick="window.switchTab('parts')">👥 Participantes (<span id="c-parts">0</span>)</button>
             </div>
 
-            <br>
-            <button class="draw-btn" onclick="window.drawWinner()">🎲 Sortear Agora</button>
-            <button onclick="window.resetData()" style="background: #e74c3c; margin-top: 15px; font-size: 0.85em; padding: 10px;">Limpar Tudo (Reset)</button>
-        </div>
+            <div id="tab-brindes" class="tab-content">
+                <input type="text" id="prize-name" placeholder="Nome do Brinde">
+                <input type="url" id="prize-img" placeholder="URL da Imagem (Opcional)">
+                <button onclick="window.addPrize()" style="margin-bottom: 20px;">+ Adicionar Brinde</button>
+                <ul id="list-brindes"></ul>
+            </div>
 
-        <h3 style="margin-top: 30px; text-align: left;">Ganhadores Histórico</h3>
-        <ul id="winners-list"></ul>
+            <div id="tab-parts" class="tab-content hidden">
+                <ul id="list-parts"></ul>
+            </div>
+
+            <button class="btn-success" onclick="window.draw()">🎲 SORTEAR AGORA</button>
+            <button class="btn-danger" onclick="window.reset()" style="margin-top: 15px; font-size: 0.9em; padding: 10px;">Limpar Dados (Reset)</button>
+        </div>
     </div>
 
-    <div id="winner-modal" class="winner-modal hidden">
-        <div class="winner-content">
+    <!-- Modal Vencedor -->
+    <div id="modal-winner" class="modal-overlay hidden">
+        <div class="modal-card">
             <h2>🏆 VENCEDOR!</h2>
-            <h3 id="modal-winner-name" style="font-size: 1.6em; margin-bottom: 5px;"></h3>
-            <p style="color: #666; margin-top: 0; font-size: 1.1em;">Ganhou: <b id="modal-prize-name"></b></p>
-            <img id="modal-prize-image" src="" alt="Imagem do Prêmio" class="hidden">
-            <button onclick="window.closeModal()" style="margin-top: 20px; background: #333;">Fechar</button>
+            <h3 id="w-name"></h3>
+            <p>Ganhou: <b id="w-prize"></b></p>
+            <img id="w-img" src="" alt="Brinde" class="modal-img hidden">
+            <button onclick="window.closeModal()" style="background: #333; margin-top: 20px;">Fechar</button>
         </div>
     </div>
+
+    <footer>A.R.S. HTML GAMES e APPS</footer>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-app.js";
@@ -131,125 +109,146 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        const refParticipants = ref(db, 'participants');
-        const refPrizes = ref(db, 'prizes');
-        const refWinners = ref(db, 'winners');
-        const refCurrentDraw = ref(db, 'current_draw');
+        const rParts = ref(db, 'parts');
+        const rPrizes = ref(db, 'prizes');
+        const rDraw = ref(db, 'draw');
 
         const isAdmin = new URLSearchParams(window.location.search).has('admin');
-        const myLocalName = localStorage.getItem('sorteio_name');
 
+        // Configuração Inicial de Visualização
         if (isAdmin) {
-            document.getElementById('host-panel').classList.remove('hidden');
-            document.getElementById('participant-panel').classList.add('hidden');
-        } else if (myLocalName) {
-            document.getElementById('participant-panel').classList.add('hidden');
-            document.getElementById('joined-msg').classList.remove('hidden');
+            document.getElementById('view-participant').classList.add('hidden');
+            document.getElementById('view-admin').classList.remove('hidden');
+        } else if (localStorage.getItem('sort_name')) {
+            document.getElementById('view-participant').classList.add('hidden');
+            document.getElementById('view-waiting').classList.remove('hidden');
         }
 
-        window.joinRaffle = async function() {
-            const name = document.getElementById('participant-name').value.trim();
-            if (!name) return alert("Digite o seu nome!");
+        // --- FUNÇÕES GLOBAIS ---
+        window.switchTab = function(tab) {
+            document.getElementById('tab-brindes').classList.add('hidden');
+            document.getElementById('tab-parts').classList.add('hidden');
+            document.getElementById('tab-btn-brindes').classList.remove('active');
+            document.getElementById('tab-btn-parts').classList.remove('active');
             
-            await push(refParticipants, { name: name });
-            localStorage.setItem('sorteio_name', name);
-            document.getElementById('participant-panel').classList.add('hidden');
-            document.getElementById('joined-msg').classList.remove('hidden');
+            document.getElementById(`tab-${tab}`).classList.remove('hidden');
+            document.getElementById(`tab-btn-${tab}`).classList.add('active');
+        };
+
+        window.join = async function() {
+            const name = document.getElementById('part-name').value.trim();
+            if (!name) return alert("Insira o seu nome.");
+            
+            await push(rParts, { name });
+            localStorage.setItem('sort_name', name);
+            document.getElementById('view-participant').classList.add('hidden');
+            document.getElementById('view-waiting').classList.remove('hidden');
         };
 
         window.addPrize = async function() {
-            const prize = document.getElementById('prize-name').value.trim();
-            const image = document.getElementById('prize-image').value.trim();
-            if (!prize) return;
+            const name = document.getElementById('prize-name').value.trim();
+            const img = document.getElementById('prize-img').value.trim();
+            if (!name) return alert("O brinde precisa de um nome.");
             
-            await push(refPrizes, { name: prize, image: image });
+            await push(rPrizes, { name, img });
             document.getElementById('prize-name').value = '';
-            document.getElementById('prize-image').value = '';
+            document.getElementById('prize-img').value = '';
         };
 
-        window.drawWinner = async function() {
-            const snapParts = await get(refParticipants);
-            const snapPrizes = await get(refPrizes);
+        window.draw = async function() {
+            const sParts = await get(rParts);
+            const sPrizes = await get(rPrizes);
             
-            const participants = [];
-            if (snapParts.exists()) snapParts.forEach(c => { participants.push({ id: c.key, name: c.val().name }); });
+            const parts = [];
+            if (sParts.exists()) sParts.forEach(c => parts.push({ id: c.key, ...c.val() }));
             
             const prizes = [];
-            if (snapPrizes.exists()) snapPrizes.forEach(c => { prizes.push({ id: c.key, name: c.val().name, image: c.val().image || '' }); });
+            if (sPrizes.exists()) sPrizes.forEach(c => prizes.push({ id: c.key, ...c.val() }));
 
-            if (prizes.length === 0) return alert("Não há brindes registados!");
-            if (participants.length === 0) return alert("Não há participantes!");
+            if (!prizes.length) return alert("Não há brindes.");
+            if (!parts.length) return alert("Não há participantes.");
 
             const prize = prizes[0];
-            const winnerIndex = Math.floor(Math.random() * participants.length);
-            const winner = participants[winnerIndex];
+            const winner = parts[Math.floor(Math.random() * parts.length)];
 
-            await push(refWinners, { winnerName: winner.name, prizeName: prize.name });
+            // Remove vencedor e brinde sorteado
             await remove(ref(db, `prizes/${prize.id}`));
-            await remove(ref(db, `participants/${winner.id}`));
+            await remove(ref(db, `parts/${winner.id}`));
 
-            await set(refCurrentDraw, {
-                winner: winner.name,
-                prize: prize.name,
-                image: prize.image,
-                timestamp: Date.now()
+            // Dispara modal para todos
+            await set(rDraw, {
+                wName: winner.name,
+                pName: prize.name,
+                img: prize.img || '',
+                time: Date.now()
             });
         };
 
-        window.resetData = async function() {
-            if(confirm("Isto apagará TODOS os dados. Tem a certeza?")) {
-                await remove(refParticipants);
-                await remove(refPrizes);
-                await remove(refWinners);
-                await remove(refCurrentDraw);
-                localStorage.removeItem('sorteio_name');
+        window.reset = async function() {
+            if(confirm("Apagar TUDO?")) {
+                await remove(rParts);
+                await remove(rPrizes);
+                await remove(rDraw);
+                localStorage.removeItem('sort_name');
+                if(!isAdmin) location.reload();
             }
         };
 
-        onValue(refParticipants, snap => {
+        window.closeModal = function() {
+            document.getElementById('modal-winner').classList.add('hidden');
+        };
+
+        // --- LISTENERS (Atualização em Tempo Real) ---
+        onValue(rParts, snap => {
             const count = snap.exists() ? snap.size : 0;
-            document.getElementById('count-participants').innerText = count;
+            document.getElementById('c-parts').innerText = count;
             
             if (isAdmin) {
-                const list = document.getElementById('admin-participants');
+                const list = document.getElementById('list-parts');
                 list.innerHTML = '';
                 if (snap.exists()) {
-                    snap.forEach(child => { list.innerHTML += `<li>${child.val().name}</li>`; });
+                    snap.forEach(c => { list.innerHTML += `<li>${c.val().name}</li>`; });
                 }
             }
         });
 
-        onValue(refPrizes, snap => {
+        onValue(rPrizes, snap => {
             const count = snap.exists() ? snap.size : 0;
-            document.getElementById('count-prizes').innerText = count;
+            document.getElementById('c-brindes').innerText = count;
             
             if (isAdmin) {
-                const list = document.getElementById('admin-prizes');
+                const list = document.getElementById('list-brindes');
                 list.innerHTML = '';
                 if (snap.exists()) {
-                    snap.forEach(child => { 
-                        const p = child.val();
-                        const imgTag = p.image ? `<img src="${p.image}" class="prize-thumb">` : '';
-                        list.innerHTML += `<li>${p.name} ${imgTag}</li>`; 
+                    snap.forEach(c => {
+                        const p = c.val();
+                        const imgHtml = p.img ? `<img src="${p.img}" class="item-img">` : '';
+                        list.innerHTML += `<li><span>${p.name}</span> ${imgHtml}</li>`;
                     });
                 }
             }
         });
 
-        onValue(refWinners, snap => {
-            const list = document.getElementById('winners-list');
-            list.innerHTML = '';
+        onValue(rDraw, snap => {
             if (snap.exists()) {
-                snap.forEach(child => {
-                    const w = child.val();
-                    list.innerHTML = `<li><span>🎁 ${w.prizeName}</span> <strong>${w.winnerName}</strong></li>` + list.innerHTML;
-                });
+                const d = snap.val();
+                if (Date.now() - d.time < 15000) { // Mostra apenas se o sorteio ocorreu há menos de 15s
+                    document.getElementById('w-name').innerText = d.wName;
+                    document.getElementById('w-prize').innerText = d.pName;
+                    
+                    const imgEl = document.getElementById('w-img');
+                    if(d.img) {
+                        imgEl.src = d.img;
+                        imgEl.classList.remove('hidden');
+                    } else {
+                        imgEl.classList.add('hidden');
+                    }
+
+                    document.getElementById('modal-winner').classList.remove('hidden');
+                    if(!isAdmin && navigator.vibrate) navigator.vibrate([200, 100, 200]);
+                }
             }
         });
-
-        onValue(refCurrentDraw, snap => {
-            if (snap.exists()) {
-                const draw = snap.val();
-                if (Date.now() - draw.timestamp < 15000) { 
-                    document.getElementById('modal-winner-name').innerText = draw.winner;
-                    document.getElementById('modal-prize-name').innerText = draw.prize;
+    </script>
+</body>
+</html>
